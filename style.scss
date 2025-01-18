@@ -1,0 +1,41 @@
+@use "scheme";
+
+* {
+    all: unset;
+}
+
+window {
+    background-color: scheme.$base;
+    color: scheme.$text;
+    font-size: 1.8rem;
+    font-family: "Jetbrains Mono Nerd Font", monospace;
+}
+
+.prompt {
+    font-size: 4rem;
+    font-weight: bold;
+    margin-bottom: 0.2rem;
+}
+
+.time {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 0.8rem;
+    color: scheme.$subtext0;
+}
+
+button {
+    border-radius: 1rem;
+    background-color: scheme.$surface0;
+    padding: 0.2rem 1rem;
+    transition: 300ms linear;
+
+    &:hover,
+    &:focus {
+        background-color: scheme.$surface1;
+    }
+
+    &:active {
+        background-color: scheme.$surface2;
+    }
+}
