@@ -25,7 +25,7 @@ All configs are in `config.ts`.
 
 Install dependencies:
 - [`aylurs-gtk-shell`](https://github.com/Aylur/ags)
-- [`libayatana-appindicator`](https://github.com/AyatanaIndicators/libayatana-appindicator)
+- [`libappindicator-gtk3`](https://launchpad.net/libappindicator)
 
 Clone this repo.
 
