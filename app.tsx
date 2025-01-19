@@ -33,6 +33,9 @@ App.start({
         if (request === "quit") App.quit();
         else if (request === "reload-css") loadStyleAsync().catch(console.error);
         else if (request === "hide") SafeEyes.hide();
+        else if (request === "immediate") SafeEyes.immediate();
+        else if (request === "start") SafeEyes.start();
+        else if (request === "stop") SafeEyes.stop();
         else return res("Unknown command: " + request);
 
         console.log(`Request handled: ${request}`);
