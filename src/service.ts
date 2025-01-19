@@ -3,7 +3,7 @@ import config from "../config";
 
 const shortPerLong = config.long.interval / config.short.interval;
 const random = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
-const format = (n: GLib.DateTime, m: number) => n.add_minutes(m)?.format("%l:%M %P")?.trim();
+const format = (n: GLib.DateTime, m: number) => n.add_minutes(m)?.format("%l:%M %P")?.trim() ?? null;
 
 @register({ GTypeName: "SafeEyes" })
 class SafeEyes extends GObject.Object {
@@ -25,7 +25,11 @@ class SafeEyes extends GObject.Object {
     @property(String)
     next: string | null = null;
 
+    @property(String)
+    disabledUntil: string | null = "";
+
     #timeout: Time | null = null;
+    #disableTimeout: Time | null = null;
     #count: number = 0;
 
     #updateNext() {
@@ -38,7 +42,7 @@ class SafeEyes extends GObject.Object {
 
     #updateTime() {
         if (--this.time > 0) this.#timeout = timeout(1000, () => this.#updateTime());
-        else {
+        else if (this.disabledUntil === null) {
             this.#updateNext();
             this.#timeout = timeout(config.short.interval * 60 * 1000, () => this.#update());
             this.emit("hide");
@@ -47,9 +51,13 @@ class SafeEyes extends GObject.Object {
     }
 
     #update() {
+        const type = ++this.#count % shortPerLong === 0 ? "long" : "short";
+
         // Notify
         const id = exec(
-            `notify-send -p -u low -i view-reveal-symbolic -a safeeyes 'Take a break' 'Break in ${config.prepTime} seconds'`
+            `notify-send -p -u low -i view-reveal-symbolic -a safeeyes 'Take a break' '${
+                type.slice(0, 1).toUpperCase() + type.slice(1)
+            } break in ${config.prepTime} seconds'`
         );
         this.#timeout = timeout(config.prepTime * 1000, () => {
             // Close notification
@@ -57,7 +65,6 @@ class SafeEyes extends GObject.Object {
                 `gdbus call --session --dest org.freedesktop.Notifications --object-path /org/freedesktop/Notifications --method org.freedesktop.Notifications.CloseNotification ${id}`
             ).catch(console.error);
 
-            const type = ++this.#count % shortPerLong === 0 ? "long" : "short";
             this.prompt = random(config[type].prompts);
             this.notify("prompt");
             this.type = type;
@@ -71,29 +78,49 @@ class SafeEyes extends GObject.Object {
         });
     }
 
-    immediate() {
-        if (this.#timeout === null) this.#update();
+    any() {
+        if (Math.random() < 0.5) this.short();
+        else this.long();
+    }
+
+    short() {
+        console.log("Short break");
+        this.#count = 0;
+        this.#update();
+    }
+
+    long() {
+        console.log("Long break");
+        this.#count = shortPerLong - 1;
+        this.#update();
     }
 
     start() {
-        if (this.#timeout === null) {
-            this.#updateNext();
-            this.#timeout = timeout(config.short.interval * 60 * 1000, () => this.#update());
-        }
+        if (this.disabledUntil === null) return;
+        console.log("Enabled");
+
+        this.#updateNext();
+        this.#timeout = timeout(config.short.interval * 60 * 1000, () => this.#update());
+        this.disabledUntil = null;
+        this.notify("disabled-until");
+        this.#disableTimeout?.cancel();
+        this.#disableTimeout = null;
     }
 
-    stop() {
+    stop(length: number) {
+        if (this.disabledUntil !== null) return;
+        console.log(`Disabled for ${length} minutes`);
+
         this.#timeout?.cancel();
         this.#timeout = null;
+
+        this.disabledUntil = length === -1 ? "restart" : format(GLib.DateTime.new_now_local(), length);
+        this.notify("disabled-until");
+        if (length !== -1) this.#disableTimeout = timeout(length * 60 * 1000, () => this.start());
+
         this.next = null;
         this.notify("next");
         this.emit("hide");
-    }
-
-    constructor() {
-        super();
-
-        this.start();
     }
 }
 
