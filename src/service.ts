@@ -1,7 +1,9 @@
-import { exec, execAsync, GObject, property, register, signal, timeout, type Time } from "astal";
+import { exec, execAsync, GLib, GObject, property, register, signal, timeout, type Time } from "astal";
 import config from "../config";
 
+const shortPerLong = config.long.interval / config.short.interval;
 const random = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
+const format = (n: GLib.DateTime, m: number) => n.add_minutes(m)?.format("%l:%M %P")?.trim();
 
 @register({ GTypeName: "SafeEyes" })
 class SafeEyes extends GObject.Object {
@@ -20,12 +22,24 @@ class SafeEyes extends GObject.Object {
     @property(String)
     time: number = 0;
 
+    @property(String)
+    next: string | null = null;
+
     #timeout: Time | null = null;
     #count: number = 0;
+
+    #updateNext() {
+        const now = GLib.DateTime.new_now_local();
+        const short = format(now, config.short.interval);
+        const long = format(now, config.short.interval * (shortPerLong - (this.#count % shortPerLong)));
+        this.next = short === long ? `${format(now, config.short.interval * 2)}/${long}` : `${short}/${long}`;
+        this.notify("next");
+    }
 
     #updateTime() {
         if (--this.time > 0) this.#timeout = timeout(1000, () => this.#updateTime());
         else {
+            this.#updateNext();
             this.#timeout = timeout(config.short.interval * 60 * 1000, () => this.#update());
             this.emit("hide");
         }
@@ -43,7 +57,7 @@ class SafeEyes extends GObject.Object {
                 `gdbus call --session --dest org.freedesktop.Notifications --object-path /org/freedesktop/Notifications --method org.freedesktop.Notifications.CloseNotification ${id}`
             ).catch(console.error);
 
-            const type = ++this.#count % (config.long.interval / config.short.interval) === 0 ? "long" : "short";
+            const type = ++this.#count % shortPerLong === 0 ? "long" : "short";
             this.prompt = random(config[type].prompts);
             this.notify("prompt");
             this.type = type;
@@ -62,12 +76,17 @@ class SafeEyes extends GObject.Object {
     }
 
     start() {
-        if (this.#timeout === null) this.#timeout = timeout(config.short.interval * 60 * 1000, () => this.#update());
+        if (this.#timeout === null) {
+            this.#updateNext();
+            this.#timeout = timeout(config.short.interval * 60 * 1000, () => this.#update());
+        }
     }
 
     stop() {
         this.#timeout?.cancel();
         this.#timeout = null;
+        this.next = null;
+        this.notify("next");
         this.emit("hide");
     }
 
