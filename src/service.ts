@@ -1,4 +1,4 @@
-import { Gio, GLib, GObject, property, register, signal, timeout, type Time } from "astal";
+import { execAsync, Gio, GLib, GObject, property, register, signal, timeout, type Time } from "astal";
 import { App } from "astal/gtk3";
 import config from "../config";
 
@@ -47,6 +47,7 @@ class SafeEyes extends GObject.Object {
             this.#updateNext();
             this.#timeout = timeout(config.short.interval * 60 * 1000, () => this.#update());
             this.emit("hide");
+            execAsync(`aplay ${SRC}/ding.wav`).catch(console.error);
         }
         this.notify("time");
     }
