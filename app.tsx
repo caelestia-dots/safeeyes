@@ -1,7 +1,7 @@
 import { execAsync, GLib, monitorFile, readFileAsync, writeFileAsync } from "astal";
 import { App, type Gdk } from "astal/gtk3";
 import config from "./config";
-import { init } from "./src/indicator";
+import Indicator from "./src/indicator";
 import Inhibit from "./src/inhibit";
 import SafeEyes from "./src/service";
 import Window from "./src/window";
@@ -27,7 +27,7 @@ App.start({
 
         SafeEyes.start();
         if (config.fullscreenInhibit) Inhibit.start();
-        init(); // I tried... It doesn't exactly work, but oh well
+        Object.assign(App, { indicator: new Indicator() }); // Assign it as a property of the app to prevent it from being garbage collected
 
         const map = new Map<Gdk.Monitor, JSX.Element>();
         App.get_monitors().forEach(m => map.get(m) ?? map.set(m, <Window monitor={m} />));

@@ -51,7 +51,7 @@ class SafeEyes extends GObject.Object {
             execAsync(`aplay ${SRC}/ding.wav`).catch(console.error);
         }
         this.notify("time");
-    } //TODO: fullscreen inhibit
+    }
 
     #update() {
         // Skip if inhibited
