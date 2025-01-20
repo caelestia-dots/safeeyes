@@ -1,4 +1,5 @@
-import { exec, execAsync, GLib, GObject, property, register, signal, timeout, type Time } from "astal";
+import { Gio, GLib, GObject, property, register, signal, timeout, type Time } from "astal";
+import { App } from "astal/gtk3";
 import config from "../config";
 
 const shortPerLong = config.long.interval / config.short.interval;
@@ -53,17 +54,18 @@ class SafeEyes extends GObject.Object {
     #update() {
         const type = ++this.#count % shortPerLong === 0 ? "long" : "short";
 
+        // App name will be gjs and no app icon but oh well
+        const notification = new Gio.Notification();
+        notification.set_title("Take a break");
+        notification.set_body(`${type.slice(0, 1).toUpperCase() + type.slice(1)} break in ${config.prepTime} seconds`);
+        notification.set_priority(Gio.NotificationPriority.LOW);
+
         // Notify
-        const id = exec(
-            `notify-send -p -u low -i view-reveal-symbolic -a safeeyes 'Take a break' '${
-                type.slice(0, 1).toUpperCase() + type.slice(1)
-            } break in ${config.prepTime} seconds'`
-        );
+        App.send_notification("take-a-break", notification);
+
         this.#timeout = timeout(config.prepTime * 1000, () => {
             // Close notification
-            execAsync(
-                `gdbus call --session --dest org.freedesktop.Notifications --object-path /org/freedesktop/Notifications --method org.freedesktop.Notifications.CloseNotification ${id}`
-            ).catch(console.error);
+            App.withdraw_notification("take-a-break");
 
             this.prompt = random(config[type].prompts);
             this.notify("prompt");
