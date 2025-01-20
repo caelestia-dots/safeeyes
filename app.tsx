@@ -1,6 +1,8 @@
 import { execAsync, GLib, monitorFile, readFileAsync, writeFileAsync } from "astal";
 import { App, type Gdk } from "astal/gtk3";
+import config from "./config";
 import { init } from "./src/indicator";
+import Inhibit from "./src/inhibit";
 import SafeEyes from "./src/service";
 import Window from "./src/window";
 
@@ -24,6 +26,7 @@ App.start({
         monitorFile(`${CACHE}/scheme/current.txt`, () => loadStyleAsync().catch(console.error));
 
         SafeEyes.start();
+        if (config.fullscreenInhibit) Inhibit.start();
         init(); // I tried... It doesn't exactly work, but oh well
 
         const map = new Map<Gdk.Monitor, JSX.Element>();

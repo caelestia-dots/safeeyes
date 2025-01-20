@@ -1,4 +1,5 @@
 export default {
+    fullscreenInhibit: true,
     prepTime: 10, // Seconds
     short: {
         interval: 15, // Minutes

@@ -1,6 +1,7 @@
 import { execAsync, Gio, GLib, GObject, property, register, signal, timeout, type Time } from "astal";
 import { App } from "astal/gtk3";
 import config from "../config";
+import Inhibit from "./inhibit";
 
 const shortPerLong = config.long.interval / config.short.interval;
 const random = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
@@ -50,9 +51,15 @@ class SafeEyes extends GObject.Object {
             execAsync(`aplay ${SRC}/ding.wav`).catch(console.error);
         }
         this.notify("time");
-    }
+    } //TODO: fullscreen inhibit
 
     #update() {
+        // Skip if inhibited
+        if (Inhibit.enabled) {
+            this.#timeout = timeout(config.short.interval * 60 * 1000, () => this.#update());
+            return;
+        }
+
         const type = ++this.#count % shortPerLong === 0 ? "long" : "short";
 
         // App name will be gjs and no app icon but oh well
