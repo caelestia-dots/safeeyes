@@ -1,3 +1,4 @@
 @girs/
 node_modules/
 scheme/_index.scss
+scheme/_dynamic.scss
