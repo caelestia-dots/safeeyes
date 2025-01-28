@@ -24,19 +24,13 @@ All configs are in `config.ts`.
 
 ## Installation
 
-Install dependencies:
-
--   [`aylurs-gtk-shell`](https://github.com/Aylur/ags)
--   [`libappindicator-gtk3`](https://launchpad.net/libappindicator)
--   [`alsa-utils`](https://github.com/alsa-project/alsa-utils)
-
-Clone this repo.
-
-If using caelestia dots, clone it into `~/.config/caelestia/safeeyes` and it will be autostarted on login.
+Install [`caelestia-scripts`](https://github.com/caelestia-dots/scripts.git),
+then run `caelestia install safeeyes`.
 
 ## Usage
 
-If using caelestia dots and installed to `~/.config/caelestia/safeeyes`, it will be autostarted on login.
+It gets autostarted on login if installed from `caelestia-scripts` and using
+[`caelestia-hypr`](https://github.com/caelestia-dots/hypr.git).
 
 Manual starting:
 
