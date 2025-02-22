@@ -6,12 +6,12 @@ import Inhibit from "./src/inhibit";
 import SafeEyes from "./src/service";
 import Window from "./src/window";
 
-const CACHE = GLib.get_user_cache_dir() + "/caelestia";
+const C_STATE = GLib.get_user_state_dir() + "/caelestia";
 
 const loadStyleAsync = async () => {
     let schemeColours;
-    if (GLib.file_test(`${CACHE}/scheme/current.txt`, GLib.FileTest.EXISTS)) {
-        const currentScheme = await readFileAsync(`${CACHE}/scheme/current.txt`);
+    if (GLib.file_test(`${C_STATE}/scheme/current.txt`, GLib.FileTest.EXISTS)) {
+        const currentScheme = await readFileAsync(`${C_STATE}/scheme/current.txt`);
         schemeColours = currentScheme
             .split("\n")
             .map(l => {
@@ -29,7 +29,7 @@ App.start({
     main() {
         const now = Date.now();
         loadStyleAsync().catch(console.error);
-        monitorFile(`${CACHE}/scheme/current.txt`, () => loadStyleAsync().catch(console.error));
+        monitorFile(`${C_STATE}/scheme/current.txt`, () => loadStyleAsync().catch(console.error));
 
         SafeEyes.start();
         if (config.fullscreenInhibit) Inhibit.start();
