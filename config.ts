@@ -5,7 +5,7 @@ export default {
         interval: 15, // Minutes
         length: 15, // Seconds
         prompts: [
-            "Tigntly close your eyes",
+            "Tightly close your eyes",
             "Roll your eyes a few times to each side",
             "Rotate your eyes in clockwise direction",
             "Rotate your eyes in counter clockwise direction",
